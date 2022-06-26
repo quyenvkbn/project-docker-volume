@@ -16,7 +16,6 @@ RUN cp /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && dat
 RUN rm /etc/nginx/conf.d/default.conf
 
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
-COPY nginx/site/ /etc/nginx/sites-enabled
 
 WORKDIR /var/www/html
 

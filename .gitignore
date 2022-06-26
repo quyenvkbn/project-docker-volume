@@ -1,6 +1,6 @@
 # local env files
 .env
-code
+code/*
 
 # Editor directories and files
 .idea
