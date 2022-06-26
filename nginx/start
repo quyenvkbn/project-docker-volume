@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# deluser --remove-home ${USER_NAME} 
+
+addgroup -g ${GROUP_ID} -S ${GROUP_NAME}
+adduser -u ${USER_ID} -D -S -G ${GROUP_NAME} ${USER_NAME}
+
+chown -R ${USER_NAME}:${GROUP_NAME} /var/cache/nginx && \
+    chown -R ${USER_NAME}:${GROUP_NAME} /var/log/nginx && \
+    chown -R ${USER_NAME}:${GROUP_NAME} /etc/nginx
+touch /run/nginx.pid \
+    chown -R ${USER_NAME}:${GROUP_NAME} /run/nginx.pid
+
+nginx -g 'daemon off;'
+

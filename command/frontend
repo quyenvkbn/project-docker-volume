@@ -1,0 +1,5 @@
+#!/bin/sh
+cd $NUXT_PATH_CONTAINER
+npm install
+npm run build
+npm run start

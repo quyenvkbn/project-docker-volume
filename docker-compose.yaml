@@ -1,0 +1,103 @@
+version: '3.5'
+networks:
+  app:
+    name: ${NETWORK_APP}
+    driver: ${NETWORKS_DRIVER}  # container cung mang ms giao tiep duoc voi nhau
+volumes:
+  nginx:
+    name: ${VOLUME_NGINX}
+    driver: ${VOLUMES_DRIVER}
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: dockerfiles/nginx.dockerfile
+    environment:
+      - 'USER_NAME=${USER_NAME}'
+      - 'USER_ID=${USER_ID}'
+      - 'GROUP_NAME=${GROUP_NAME}'
+      - 'GROUP_ID=${GROUP_ID}'
+    image: quyendocker/nginx-1.19.8-alpine:latest
+    container_name: "nginx-1.19.8-alpine"
+    ports:
+      - '${VUE_HOST_HTTP_PORT}:82'
+      - '${NUXT_HOST_HTTP_PORT}:81'
+      - '${NGINX_HOST_HTTP_PORT}:80'
+      - '${NGINX_HOST_HTTPS_PORT}:443'
+    volumes:
+      - '${APP_CODE_API_PATH_HOST}:${LARAVEL_PATH_CONTAINER}'
+      - '${APP_CODE_ADMIN_PATH_HOST}:${VUE_PATH_CONTAINER}'
+      - '${APP_CODE_FRONTEND_PATH_HOST}:${NUXT_PATH_CONTAINER}'
+      - nginx:/var/log/nginx
+    networks:
+      - app
+    depends_on:
+      - php
+      - mysql
+  php:
+    build:
+      context: .
+      dockerfile: dockerfiles/php.dockerfile
+    environment:
+      - 'USER_NAME=${USER_NAME}'
+      - 'USER_ID=${USER_ID}'
+      - 'GROUP_NAME=${GROUP_NAME}'
+      - 'GROUP_ID=${GROUP_ID}'
+      - 'LARAVEL_PATH_CONTAINER=${LARAVEL_PATH_CONTAINER}'
+    image: quyendocker/php8-fpm:latest
+    container_name: "php8-fpm"
+    volumes:
+      - '${APP_CODE_API_PATH_HOST}:${LARAVEL_PATH_CONTAINER}'
+      - '${COMMAND_PATH_HOST}/api:/command/api'
+    networks:
+      - app
+  mysql:
+    build:
+      context: .
+      dockerfile: dockerfiles/mysql.dockerfile
+      args:
+        - 'MYSQL_VERSION=${MYSQL_VERSION}'
+    image: quyendocker/mysql-8.0:latest
+    container_name: "mysql-8.0"
+    environment:
+      - 'MYSQL_DATABASE=${MYSQL_DATABASE}'
+      - 'MYSQL_USER=${MYSQL_USER}'
+      - 'MYSQL_PASSWORD=${MYSQL_PASSWORD}'
+      - 'MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}'
+      - 'TZ=${TIMEZONE}'
+    volumes:
+      - '${DATA_PATH_HOST}/mysql:/var/lib/mysql'
+    ports:
+      - '${MYSQL_PORT}:3306'
+    networks:
+      - app
+  node:
+    build:
+      context: .
+      dockerfile: dockerfiles/node.dockerfile
+      args:
+        - 'NUXT_PATH_CONTAINER=${NUXT_PATH_CONTAINER}'
+    environment:
+      - 'VUE_PATH_CONTAINER=${VUE_PATH_CONTAINER}'
+      - 'NUXT_PATH_CONTAINER=${NUXT_PATH_CONTAINER}'
+    image: quyendocker/node-12.14.1-alpine:latest
+    container_name: "node-12.14.1-alpine"
+    user: '${USER_ID}:${GROUP_ID}'
+    volumes:
+      - '${APP_CODE_ADMIN_PATH_HOST}:${VUE_PATH_CONTAINER}'
+      - '${APP_CODE_FRONTEND_PATH_HOST}:${NUXT_PATH_CONTAINER}'
+      - '${COMMAND_PATH_HOST}/admin:/command/admin'
+    networks:
+      - app
+  redis:
+    build:
+      context: .
+      dockerfile: dockerfiles/redis.dockerfile
+    image: quyendocker/redis:latest
+    container_name: "redis-latest"
+    volumes:
+      - ${DATA_PATH_HOST}/redis:/data
+    ports:
+      - "${REDIS_PORT}:6379"
+    networks:
+      - app

@@ -1,0 +1,4 @@
+#!/bin/bash
+cd $VUE_PATH_CONTAINER
+npm install
+npm run build

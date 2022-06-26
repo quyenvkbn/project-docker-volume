@@ -1,0 +1,3 @@
+#!/bin/bash
+
+docker exec -it volume_test_php sh /command/api

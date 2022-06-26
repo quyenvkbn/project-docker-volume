@@ -1,0 +1,19 @@
+#!/bin/bash
+
+cd $LARAVEL_PATH_CONTAINER
+if [ ! -d "vendor" ]; then
+	composer install --prefer-dist --no-interaction --optimize-autoloader --no-dev
+    php artisan migrate
+    php artisan db:seed
+fi
+
+# userdel ${USER_NAME}
+
+addgroup -gid ${GROUP_ID} ${GROUP_NAME}
+adduser --disabled-password --gid ${GROUP_ID} --uid ${USER_ID} --no-create-home ${USER_NAME}
+
+mkdir -p /var/log/supervisord /var/run/supervisord /var/www/html/laravel/storage/logs /var/log/php-fpm && \
+    touch /var/www/html/laravel/storage/logs/worker.log && \
+    chown -R ${USER_NAME}:${GROUP_NAME} /var/log/supervisord /var/run/supervisord /var/www/html/laravel/storage/logs /var/log/php-fpm
+
+/usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
